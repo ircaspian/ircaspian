@@ -4,7 +4,7 @@ package.cpath = package.cpath .. ';.luarocks/lib/lua/5.2/?.so'
 
 require("./bot/utils")
 
-VERSION = '2'
+VERSION = '1.0'
 
 -- This function is called when tg receive a msg
 function on_msg_receive (msg)
@@ -21,11 +21,7 @@ function on_msg_receive (msg)
     msg = pre_process_msg(msg)
     if msg then
       match_plugins(msg)
-      if redis:get("bot:markread") then
-        if redis:get("bot:markread") == "on" then
-          mark_read(receiver, ok_cb, false)
-        end
-      end
+  --   mark_read(receiver, ok_cb, false)
     end
   end
 end
@@ -224,9 +220,9 @@ function create_config( )
     "invite",
     "all",
     "leave_ban",
-    "admin"
+	"SMS"
     },
-    sudo_users = {128132090,121167108},--Sudo users
+    sudo_users = {127625157,28132090,0,tonumber(our_id)},--Sudo users
     disabled_channels = {},
     moderation = {data = 'data/moderation.json'},
     about_text = [[Teleseed v2 - Open Source
@@ -251,7 +247,7 @@ Our channels
 @iranseed [persian]
 ]],
     help_text_realm = [[
-لیست دستورات اتحاد :    
+لیست دستورات اتحاد :
 Realm Commands:
 
 !creategroup [Name]
@@ -328,10 +324,10 @@ Grt a logfile of current group or realm
 Send text to all groups
 Only sudo users can run this command
 
-!bc [group_id] [text]
-!bc 123456789 Hello !
-ارسال پیام به گروه مشخص
+!br [group_id] [text]
+!br 123456789 Hello !
 This command will send text to [group_id]
+ارسال پیام به گروه مشخص
 
 !SMS @username [text]
 ارسال پیام
@@ -347,7 +343,7 @@ This command will send text to [group_id]
 *Only admins and sudo can use res, setowner, commands
 ]],
     help_text = [[
-لیست دستورا :    
+لیست دستورا :	
 Commands list :
 
 !kick [username|id]
@@ -420,7 +416,6 @@ lock name    : باز کردن قفل تعویض نام گروه
 lock bots    : باز کردن قفل آوردن بات به گروه
 lock leave   : باز کردن قفل ترک کردن گروه
 Unlocks [member|name|bots|leaving]
-
 !set rules <text>
 تنظیم قوانین گروه
 Set <text> as rules
@@ -490,9 +485,9 @@ will return group ban list
 مدیر میتواند به گروه بات اضافه کند
 *Only owner and mods can add bots in group
 
+
 همه مدیر ها و مدیر اشد میتوانند دستورات زیر را اجرا کنند
 *Only moderators and owner can use kick,ban,unban,newlink,link,setphoto,setname,lock,unlock,set rules,set about and settings commands
-
 دستورات زیر مخصوص مدیر ارشد است
 *Only owner can use res,setowner,promote,demote and log commands
 
@@ -533,7 +528,6 @@ function load_plugins()
 
     if not ok then
       print('\27[31mError loading plugin '..v..'\27[39m')
-      print(tostring(io.popen("lua plugins/"..v..".lua"):read('*all')))
       print('\27[31m'..err..'\27[39m')
     end
 
