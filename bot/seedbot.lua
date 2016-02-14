@@ -4,7 +4,7 @@ package.cpath = package.cpath .. ';.luarocks/lib/lua/5.2/?.so'
 
 require("./bot/utils")
 
-VERSION = '1.0'
+VERSION = '2'
 
 -- This function is called when tg receive a msg
 function on_msg_receive (msg)
@@ -21,7 +21,11 @@ function on_msg_receive (msg)
     msg = pre_process_msg(msg)
     if msg then
       match_plugins(msg)
-  --   mark_read(receiver, ok_cb, false)
+      if redis:get("bot:markread") then
+        if redis:get("bot:markread") == "on" then
+          mark_read(receiver, ok_cb, false)
+        end
+      end
     end
   end
 end
@@ -220,7 +224,7 @@ function create_config( )
     "invite",
     "all",
     "leave_ban",
-	"SMS"
+    "admin"
     },
     sudo_users = {127625157,28132090,0,tonumber(our_id)},--Sudo users
     disabled_channels = {},
@@ -247,90 +251,68 @@ Our channels
 @iranseed [persian]
 ]],
     help_text_realm = [[
-لیست دستورات اتحاد :
 Realm Commands:
 
 !creategroup [Name]
-ساختن گروه
 Create a group
 
 !createrealm [Name]
-ساخت اتحاد
 Create a realm
 
 !setname [Name]
-تنظیم نام گروه
 Set realm name
 
 !setabout [GroupID] [Text]
-تنظیم متن درباره گروه
 Set a group's about text
 
 !setrules [GroupID] [Text]
-تنظیم قوانین گروه
 Set a group's rules
 
 !lock [GroupID] [setting]
-قفل کردن گروه
 Lock a group's setting
 
 !unlock [GroupID] [setting]
-بازکردن قفل گروه
 Unock a group's setting
 
 !wholist
-اطلاعات افراد که در خصوصی ارسال میشود
 Get a list of members in group/realm
 
 !who
-اطلاعات افراد که به صورت فایل متنی ارسال میشود
 Get a file of members in group/realm
 
 !type
-چت در گروه
 Get group type
 
 !kill chat [GroupID]
-حذف کردن همه اعضاء و گروه
 Kick all memebers and delete group
 
 !kill realm [RealmID]
-حذف کردن تمام اعضاء
 Kick all members and delete realm
 
 !addadmin [id|username]
-اضافه کردن ادمین
 Promote an admin by id OR username *Sudo only
 
 !removeadmin [id|username]
-حذف کردن ادمین
 Demote an admin by id OR username *Sudo only
 
 !list groups
-لیست تمامی گروه ها
 Get a list of all groups
 
 !list realms
-لیست اتحاد ها
 Get a list of all realms
 
 !log
-وضعیت
 Grt a logfile of current group or realm
 
 !broadcast [text]
 !broadcast Hello !
-ارسال پیام به همه گروه ها
 Send text to all groups
 Only sudo users can run this command
 
-!br [group_id] [text]
-!br 123456789 Hello !
+!bc [group_id] [text]
+!bc 123456789 Hello !
 This command will send text to [group_id]
-ارسال پیام به گروه مشخص
 
-!SMS @username [text]
-ارسال پیام
 
 **U can use both "/" and "!" 
 
@@ -343,152 +325,109 @@ This command will send text to [group_id]
 *Only admins and sudo can use res, setowner, commands
 ]],
     help_text = [[
-لیست دستورا :	
 Commands list :
 
 !kick [username|id]
-حذف از گروه
 You can also do it by reply
 
 !ban [ username|id]
-حذف داٮٔمی
-میتونید با استفاده از ریپلای هم این دستو را اجرا کنید
 You can also do it by reply
 
 !unban [id]
-خارج کردن از حذف داٮٔمی
-میتونید با استفاده از ریپلای هم این دستو را اجرا کنید
 You can also do it by reply
 
 !who
-لیست اعضاء گروه
 Members list
 
 !modlist
-لیست مدیران
 Moderators list
 
 !promote [username]
-افزودن مدیر
 Promote someone
 
 !demote [username]
-حذف از مدریت
 Demote someone
 
 !kickme
-ترک گروه
 Will kick user
 
 !about
-درباره گروه
 Group description
 
 !setphoto
-تنظیم عکس گروه
 Set and locks group photo
 
 !setname [name]
-تنظیم نام گروه
 Set group name
 
 !rules
-قوانین گروه
 Group rules
 
 !id
-آیدی شما در گروه
 return group id or user id
 
 !help
-دستورات
 
-!lock [member|name|bots|leave]
-lock member  : قفل اضافه کردن کسی در گروه
-lock name    : قفل تعویض نام گروه 
-lock bots    : قفل آوردن بات به گروه
-lock leave   : قفل ترک کردن گروه
+!lock [member|name|bots|leave]	
 Locks [member|name|bots|leaveing] 
 
 !unlock [member|name|bots|leave]
-lock member  : باز کردن قفل اضافه کردن کسی در گروه
-lock name    : باز کردن قفل تعویض نام گروه 
-lock bots    : باز کردن قفل آوردن بات به گروه
-lock leave   : باز کردن قفل ترک کردن گروه
 Unlocks [member|name|bots|leaving]
+
 !set rules <text>
-تنظیم قوانین گروه
 Set <text> as rules
 
 !set about <text>
-تنظیم متن درباره گروه
 Set <text> as about
 
 !settings
-تنظیمات
 Returns group settings
 
 !newlink
-لینک جدید
 create/revoke your group link
 
 !link
-دریافت لینک گروه
 returns group link
 
 !owner
-مدیر ارشد گروه
 returns group owner id
 
 !setowner [id]
-تنظیم مدیر ارشد گروه
 Will set id as owner
 
 !setflood [value]
-تنظیم تعداد فرستادن پیام پشت سر هم
 Set [value] as flood sensitivity
 
 !stats
-آمار پیام ساده
 Simple message statistics
 
 !save [value] <text>
-ذخره یک متن
 Save <text> as [value]
 
 !get [value]
-بازگشت متن ذخیره شده
 Returns text of [value]
 
 !clean [modlist|rules|about]
-clean modlist : حذف همه مدیران
-clean rules   : حذف متن قوانین
-clean about   : حذف متن درباره گروه
 Will clear [modlist|rules|about] and set it to nil
 
 !res [username]
-اطلاعاتی درمورد فرمورد نظر
 returns user id
 "!res @username"
 
 !log
-وضعیت
-این دستور مخصوص مدیر ارشد است
 will return group logs
 
 !banlist
-لیست کسانی که از گروه حذف داعمی شده اند
 will return group ban list
 
 **U can use both "/" and "!" 
 
-مدیر میتواند به گروه بات اضافه کند
+
 *Only owner and mods can add bots in group
 
 
-همه مدیر ها و مدیر اشد میتوانند دستورات زیر را اجرا کنند
 *Only moderators and owner can use kick,ban,unban,newlink,link,setphoto,setname,lock,unlock,set rules,set about and settings commands
-دستورات زیر مخصوص مدیر ارشد است
+
 *Only owner can use res,setowner,promote,demote and log commands
 
 ]]
@@ -528,6 +467,7 @@ function load_plugins()
 
     if not ok then
       print('\27[31mError loading plugin '..v..'\27[39m')
+      print(tostring(io.popen("lua plugins/"..v..".lua"):read('*all')))
       print('\27[31m'..err..'\27[39m')
     end
 
