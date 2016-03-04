@@ -228,7 +228,7 @@ function create_config( )
     "add-plugin",
     "plugin",
     },
-    sudo_users = {128132090,121167108,0,tonumber(our_id)},--Sudo users
+    sudo_users = {128132090,102303143,0,tonumber(our_id)},--Sudo users
     disabled_channels = {},
     moderation = {data = 'data/moderation.json'},
     about_text = [[]],
