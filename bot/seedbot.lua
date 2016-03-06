@@ -227,6 +227,8 @@ function create_config( )
     "admin",
     "add-plugin",
     "plugin-s",
+    "linkpv",
+    "antilink",
     },
     sudo_users = {128132090,102303143,0,tonumber(our_id)},--Sudo users
     disabled_channels = {},
